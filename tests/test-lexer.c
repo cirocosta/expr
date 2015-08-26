@@ -24,10 +24,6 @@ int test2()
   expr_InBuffer* buffer = expr_new_buffer(str, strlen(str));
 
   ASSERT(expr_lex(buffer) != 0, "Tokenization must work");
-  ASSERT(buffer->token->type == EXPR_T_SPACE,
-         "Token type must match: bunch of spaces");
-
-  ASSERT(expr_lex(buffer) != 0, "Tokenization must work");
   ASSERT(buffer->token->type == EXPR_T_PLUS, "Token type must match: +");
 
   ASSERT(expr_lex(buffer) != 0, "Tokenization must work");

@@ -133,6 +133,8 @@ int expr_lex_spaces(expr_InBuffer* buf)
 
 int expr_lex(expr_InBuffer* buf)
 {
-  return expr_lex_spaces(buf) || expr_lex_plus(buf) || expr_lex_minus(buf) ||
-         expr_lex_number(buf);
+  // disconsidering spaces
+  expr_lex_spaces(buf);
+
+  return expr_lex_plus(buf) || expr_lex_minus(buf) || expr_lex_number(buf);
 }
