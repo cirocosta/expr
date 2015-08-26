@@ -1,49 +1,47 @@
 #include "expr/parser.h"
 
-#if 0
-struct lex_program {
-  char la;
-  const char* buf;
-  const size_t bufsize;
-};
-#endif
-
-void _EXPR(expr_InBuffer*, expr_Token*);
-void _REST(expr_InBuffer*, expr_Token*);
-void _TERM(expr_InBuffer*, expr_Token*);
+void _EXPR(expr_InBuffer*);
+void _REST(expr_InBuffer*);
+void _TERM(expr_InBuffer*);
 void _match(char);
 
 void parse_str(const char* str, size_t str_len)
 {
   expr_InBuffer* buf = expr_new_buffer(str, str_len);
-  expr_Token token;
 
-  expr_lex(buf, &token);
-  _EXPR(buf, &token);
+  expr_lex(buf);
+  _EXPR(buf);
 
   expr_delete_buffer(buf);
 }
 
-void _EXPR(expr_InBuffer* buf, expr_Token* token)
+void _EXPR(expr_InBuffer* buf)
 {
-  /* _TERM(); */
-  /* _REST(); */
+  _TERM(buf);
+  _REST(buf);
 
-  printf("%s\n", "Good Job!");
+  DLOG("%s\n", "Good Job!");
 }
-#if 0
-void _REST(void)
+
+void _TERM(expr_InBuffer* buf)
+{
+  ASSERT(buf->token->type == EXPR_T_NUM, "");
+  DLOG("term: %lu\n", buf->token->value.big_integral);
+  expr_lex(buf);
+}
+
+void _REST(expr_InBuffer* buf)
 {
   while (1) {
-    if (la == '+') {
-      _match(la);
-      _TERM();
-      printf("%s\n", "token +");
+    if (buf->token->type == EXPR_T_PLUS) {
+      expr_lex(buf);
+      DLOG("%s\n", "token +");
+      _TERM(buf);
       continue;
-    } else if (la == '-') {
-      _match(la);
-      _TERM();
-      printf("%s\n", "token -");
+    } else if (buf->token->type == EXPR_T_MINUS) {
+      expr_lex(buf);
+      DLOG("%s\n", "token -");
+      _TERM(buf);
       continue;
     } else {
       ; // epslon
@@ -52,26 +50,3 @@ void _REST(void)
     break;
   }
 }
-
-void _TERM(void)
-{
-  char t = la;
-
-  if (isdigit(la)) {
-    _match(la);
-    printf("term: %c\n", t);
-  } else {
-    fprintf(stderr, "%s\n", "syntax error");
-  }
-}
-
-void _match(char t)
-{
-  if (la != t) {
-    fprintf(stderr, "Error\nLA != EXPECTED: %c != %c\n", la, t);
-    exit(EXIT_FAILURE);
-  }
-
-  expr_lex();
-}
-#endif

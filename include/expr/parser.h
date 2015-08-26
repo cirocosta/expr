@@ -6,6 +6,8 @@
 #include <stdlib.h>
 
 #include "expr/lexer.h"
+#include "expr/common.h"
+#include "expr/debug.h"
 
 void parse_str(const char* buf, size_t bufsize);
 

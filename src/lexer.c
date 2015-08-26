@@ -3,12 +3,14 @@
 expr_InBuffer* expr_new_buffer(const char* str, size_t len)
 {
   expr_InBuffer* buf = malloc(sizeof(*buf));
+  expr_Token* token = malloc(sizeof(*token));
 
   if (!buf) {
     perror("expr_new_buffer mem allocation:");
     exit(EXIT_FAILURE);
   }
 
+  buf->token = token;
   buf->buf = str;
   buf->la = &buf->buf;
   buf->buf_pos = 0;
@@ -19,6 +21,7 @@ expr_InBuffer* expr_new_buffer(const char* str, size_t len)
 
 void expr_delete_buffer(expr_InBuffer* buf)
 {
+  free(buf->token);
   free(buf);
   buf = NULL;
 }
@@ -52,33 +55,33 @@ void expr_delete_token(expr_Token* token)
   }
 }
 
-int expr_lex_plus(expr_InBuffer* buf, expr_Token* token)
+int expr_lex_plus(expr_InBuffer* buf)
 {
   char peek = *(buf->buf + buf->buf_pos);
 
   if (peek != '+')
     return 0;
 
-  token->type = EXPR_T_PLUS;
+  buf->token->type = EXPR_T_PLUS;
   buf->buf_pos++;
 
   return 1;
 }
 
-int expr_lex_minus(expr_InBuffer* buf, expr_Token* token)
+int expr_lex_minus(expr_InBuffer* buf)
 {
   char peek = *(buf->buf + buf->buf_pos);
 
   if (peek != '-')
     return 0;
 
-  token->type = EXPR_T_MINUS;
+  buf->token->type = EXPR_T_MINUS;
   buf->buf_pos++;
 
   return 1;
 }
 
-int expr_lex_number(expr_InBuffer* buf, expr_Token* token)
+int expr_lex_number(expr_InBuffer* buf)
 {
   unsigned pos = buf->buf_pos;
   char peek = *(buf->buf + pos);
@@ -87,8 +90,8 @@ int expr_lex_number(expr_InBuffer* buf, expr_Token* token)
   if (!(isdigit(peek)))
     return 0;
 
-  token->type = EXPR_T_NUM;
-  token->value.big_integral = strtol(buf->buf + buf->buf_pos, &end, 10);
+  buf->token->type = EXPR_T_NUM;
+  buf->token->value.big_integral = strtol(buf->buf + buf->buf_pos, &end, 10);
   // TODO debug this
   pos += (end - (buf->buf + pos));
 
@@ -97,7 +100,7 @@ int expr_lex_number(expr_InBuffer* buf, expr_Token* token)
   return 1;
 }
 
-int expr_lex_spaces(expr_InBuffer* buf, expr_Token* token)
+int expr_lex_spaces(expr_InBuffer* buf)
 {
   unsigned loc = buf->loc;
   unsigned lines = buf->lines;
@@ -123,13 +126,13 @@ int expr_lex_spaces(expr_InBuffer* buf, expr_Token* token)
   buf->lines = lines;
   buf->buf_pos = pos;
 
-  token->type = EXPR_T_SPACE;
+  buf->token->type = EXPR_T_SPACE;
 
   return 1;
 }
 
-int expr_lex(expr_InBuffer* buf, expr_Token* token)
+int expr_lex(expr_InBuffer* buf)
 {
-  return expr_lex_spaces(buf, token) || expr_lex_plus(buf, token) ||
-         expr_lex_minus(buf, token) || expr_lex_number(buf, token);
+  return expr_lex_spaces(buf) || expr_lex_plus(buf) || expr_lex_minus(buf) ||
+         expr_lex_number(buf);
 }

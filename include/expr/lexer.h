@@ -15,16 +15,6 @@ typedef enum token_type {
   EXPR_T_SPACE
 } expr_TokenType;
 
-typedef struct in_buffer {
-  char const** la;
-  unsigned lines;
-  unsigned loc;
-
-  const char* buf;
-  int buf_pos;
-  size_t buf_size;
-} expr_InBuffer;
-
 typedef union token_value {
   char* str;
   int integral;
@@ -36,17 +26,28 @@ typedef struct token {
   expr_TokenValue value;
 } expr_Token;
 
+typedef struct in_buffer {
+  char const** la;
+  unsigned lines;
+  unsigned loc;
+  expr_Token* token;
+
+  const char* buf;
+  int buf_pos;
+  size_t buf_size;
+} expr_InBuffer;
+
 expr_InBuffer* expr_new_buffer(const char* str, size_t buf_len);
 void expr_delete_buffer(expr_InBuffer* buf);
 
 expr_Token* expr_new_token(expr_TokenType type, expr_TokenValue value);
 void expr_delete_token(expr_Token* token);
 
-int expr_lex_plus(expr_InBuffer* buf, expr_Token* token);
-int expr_lex_minus(expr_InBuffer* buf, expr_Token* token);
-int expr_lex_number(expr_InBuffer* buf, expr_Token* token);
-int expr_lex_spaces(expr_InBuffer* buf, expr_Token* token);
-int expr_lex(expr_InBuffer* buf, expr_Token* token);
+int expr_lex_plus(expr_InBuffer* buf);
+int expr_lex_minus(expr_InBuffer* buf);
+int expr_lex_number(expr_InBuffer* buf);
+int expr_lex_spaces(expr_InBuffer* buf);
+int expr_lex(expr_InBuffer* buf);
 
 char expr_read_in(expr_InBuffer* buf);
 
