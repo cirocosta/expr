@@ -1,8 +1,5 @@
 #include "expr/parser.h"
 
-char read_in();
-
-
 #if 0
 struct lex_program {
   char la;
@@ -11,33 +8,30 @@ struct lex_program {
 };
 #endif
 
-char la = 0;
-const char* in_buf = NULL;
-int pos = 0;
-size_t in_bufsize = 0;
-
-void _EXPR(void);
-void _REST(void);
-void _TERM(void);
+void _EXPR(expr_InBuffer*, expr_Token*);
+void _REST(expr_InBuffer*, expr_Token*);
+void _TERM(expr_InBuffer*, expr_Token*);
 void _match(char);
 
-void parse_buf(const char* buf, size_t bufsize)
+void parse_str(const char* str, size_t str_len)
 {
-  in_buf = buf;
-  in_bufsize = bufsize;
+  expr_InBuffer* buf = expr_new_buffer(str, str_len);
+  expr_Token token;
 
-  read_in();
-  _EXPR();
+  expr_lex(buf, &token);
+  _EXPR(buf, &token);
+
+  expr_delete_buffer(buf);
 }
 
-void _EXPR(void)
+void _EXPR(expr_InBuffer* buf, expr_Token* token)
 {
-  _TERM();
-  _REST();
+  /* _TERM(); */
+  /* _REST(); */
 
   printf("%s\n", "Good Job!");
 }
-
+#if 0
 void _REST(void)
 {
   while (1) {
@@ -78,5 +72,6 @@ void _match(char t)
     exit(EXIT_FAILURE);
   }
 
-  read_in();
+  expr_lex();
 }
+#endif

@@ -4,10 +4,7 @@
 
 int main(int argc, char* argv[])
 {
-  const char* buf = "1+2";
-  size_t bufsize = strlen(buf);
-
-  parse_buf(buf, bufsize);
+  printf("%s\n", "Test Parser:");
 
   return 0;
 }

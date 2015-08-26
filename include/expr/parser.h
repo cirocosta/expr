@@ -7,6 +7,6 @@
 
 #include "expr/lexer.h"
 
-void parse_buf(const char* buf, size_t bufsize);
+void parse_str(const char* buf, size_t bufsize);
 
 #endif
