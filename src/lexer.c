@@ -1,11 +1,5 @@
 #include "expr/lexer.h"
 
-void expr_InBuffer_print(const expr_InBuffer* buf)
-{
-  printf("InBuffer: *(buf+pos)=%c, pos=%d, max=%lu, \n",
-         *(buf->buf + buf->buf_pos), buf->buf_pos, buf->buf_size);
-}
-
 expr_InBuffer* expr_new_buffer(const char* str, size_t len)
 {
   expr_InBuffer* buf = malloc(sizeof(*buf));
@@ -60,9 +54,7 @@ void expr_delete_token(expr_Token* token)
 
 int expr_lex_plus(expr_InBuffer* buf, expr_Token* token)
 {
-  char peek = *(buf->buf);
-
-  expr_InBuffer_print(buf);
+  char peek = *(buf->buf + buf->buf_pos);
 
   if (peek != '+')
     return 0;
@@ -75,7 +67,7 @@ int expr_lex_plus(expr_InBuffer* buf, expr_Token* token)
 
 int expr_lex_minus(expr_InBuffer* buf, expr_Token* token)
 {
-  char peek = *(buf->buf + 1);
+  char peek = *(buf->buf + buf->buf_pos);
 
   if (peek != '-')
     return 0;
@@ -83,13 +75,13 @@ int expr_lex_minus(expr_InBuffer* buf, expr_Token* token)
   token->type = EXPR_T_MINUS;
   buf->buf_pos++;
 
-  return 0;
+  return 1;
 }
 
 int expr_lex_number(expr_InBuffer* buf, expr_Token* token)
 {
   unsigned pos = buf->buf_pos;
-  char peek = *(buf->buf + pos++);
+  char peek = *(buf->buf + pos);
   char* end = NULL;
 
   if (!(isdigit(peek)))
@@ -100,6 +92,8 @@ int expr_lex_number(expr_InBuffer* buf, expr_Token* token)
   // TODO debug this
   pos += (end - (buf->buf + pos));
 
+  buf->buf_pos = pos;
+
   return 1;
 }
 
@@ -108,24 +102,23 @@ int expr_lex_spaces(expr_InBuffer* buf, expr_Token* token)
   unsigned loc = buf->loc;
   unsigned lines = buf->lines;
   unsigned pos = buf->buf_pos;
-  char peek = *(buf->buf + pos++);
+  char peek = *(buf->buf + pos);
 
-  // FIXME expr_read_in actually consumes the buffer.
-  //       we don't want this behavior.
-  for (; peek != EOF && pos < buf->buf_size; peek = *(buf->buf + pos++)) {
+  while (pos < buf->buf_size) {
     if (isblank(peek))
       loc++;
-    else if (isnewline(peek)) {
-      lines++;
-      loc = 0;
-    } else {
+    else
       break;
-    }
+
+    peek = *(buf->buf + pos++);
   }
 
-  if (!(loc && lines)) // FIXME
+  // read at least one space
+  if ((pos - buf->buf_pos) < 2)
     return 0;
 
+  // we readed-ahead
+  pos--;
   buf->loc = loc;
   buf->lines = lines;
   buf->buf_pos = pos;
@@ -137,10 +130,6 @@ int expr_lex_spaces(expr_InBuffer* buf, expr_Token* token)
 
 int expr_lex(expr_InBuffer* buf, expr_Token* token)
 {
-  /* expr_lex_spaces(buf, token); */
-
-  printf("%s\n", "hue");
-
-  return expr_lex_plus(buf, token);
+  return expr_lex_spaces(buf, token) || expr_lex_plus(buf, token) ||
+         expr_lex_minus(buf, token) || expr_lex_number(buf, token);
 }
-
